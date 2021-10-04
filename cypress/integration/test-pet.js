@@ -1,60 +1,146 @@
-describe('STORE', () => {
-    it('GET pet by Id', () => {
-       cy.request('https://petstore.swagger.io/v2/pet/1')
-       .should((response) => {
-        expect(response.status).to.eq(200)
-        expect(response.body.id).to.eq(1)
-          })
-        })
+describe('Test PET', () => {
     
-    it('POST pet by Id', () => {
-       cy.request({
-           method: 'POST',
-           url: 'https://petstore.swagger.io/v2/pet/3'
-       })
-       .should((response) => {
-        expect(response.status).to.eq(200)
-        expect(response.body.message).to.eq('3')
+    const PET = {
+      "id": 99,
+      "category": {
+        "id": 1,
+        "name": "Dogs"
+      },
+      "name": "doggie",
+      "photoUrls": [
+        "string"
+      ],
+      "tags": [
+        {
+          "id": 1,
+          "name": "dog"
+        }
+      ],
+      "status": "available"
+    }
+
+    const PET_UPDATED = {
+      "id": 99,
+      "category": {
+        "id": 1,
+        "name": "Cats"
+      },
+      "name": "kitten",
+      "photoUrls": [
+        "string"
+      ],
+      "tags": [
+        {
+          "id": 1,
+          "name": "cat"
+        }
+      ],
+      "status": "available"
+    }
+
+    it('Create PET', () => {
+          cy.request({
+            method: 'POST',
+            url: 'https://petstore.swagger.io/v2/pet/',
+            body: PET
+          })
+          .then((response) => {
+            expect(response.status).to.equal(200)
+            expect(response.body).to.deep.equal(PET);
           })
         })
 
-    it('DELETE pet by Id', () => {
-       cy.request({
-           method: 'DELETE',
-           url: 'https://petstore.swagger.io/v2/pet/2'
-       })
-       .should((response) => {
-        expect(response.status).to.eq(200)
-        expect(response.body.message).to.eq('2')
+    it('Return 404 when get pet with invalid Id', () => {
+        cy.request({
+            method: 'GET',
+            url: 'https://petstore.swagger.io/v2/pet/abc',
+            failOnStatusCode: false,
+          }).then((response) => {
+            expect(response.status).to.equal(404);
           })
         })
 
-    it('UPDATE pet', () => {
-       cy.request({
-           method: 'PUT',
-           url: 'https://petstore.swagger.io/v2/pet',
-           body: {
-            "id": 1,
-            "category": {
-              "id": 0,
-              "name": "string"
-            },
-            "name": "doggie",
-            "photoUrls": [
-              "string"
-            ],
-            "tags": [
-              {
-                "id": 0,
-                "name": "string"
-              }
-            ],
-            "status": "available"
-          }
-       })
-       .should((response) => {
-        expect(response.status).to.eq(200)
-        expect(response.body.category.id).to.eq(0)
-          })
-        })     
+    it('Get pet by Id and Check body', () => {
+      cy.wait(3000).request({
+        method: 'GET',
+        url: 'https://petstore.swagger.io/v2/pet/'+PET.id})
+        .then((response) => {
+        expect(response.status).to.equal(200)
+        expect(response.body).to.deep.equal(PET);
+      })
+    })
+
+    it('Update pet', () => {
+      cy.request({
+        method:'PUT',
+        url: 'https://petstore.swagger.io/v2/pet',
+        body: PET_UPDATED
+      }).then((response) => {
+        expect(response.status).to.equal(200)
+        expect(response.body).to.deep.equal(PET_UPDATED);
+      });
+    });
+
+    it('Get updated pet by Id and Check body', () => {
+      cy.wait(3000).request({
+        method: 'GET',
+        url: 'https://petstore.swagger.io/v2/pet/'+PET_UPDATED.id})
+        .then((response) => {
+        expect(response.status).to.equal(200)
+        expect(response.body).to.deep.equal(PET_UPDATED);
+      })
+    })
+
+    it('Delete pet with invalid Id', () => {
+      cy.request({
+        method: 'DELETE',
+        url: 'https://petstore.swagger.io/v2/pet/abc',
+        failOnStatusCode: false})
+        .then((response) => {
+        expect(response.status).to.equal(404);
+      })
+    })
+
+    it('Delete pet with id', () => {
+      cy.request({
+        method: 'DELETE',
+        url: 'https://petstore.swagger.io/v2/pet/'+PET.id
+      }).then((response) => {
+        expect(response.status).to.equal(200);
+      })
+    })
+
+    it('Return 404 when the petId is invalid', () => {
+      cy.request({
+        method: 'GET',
+        url: 'https://petstore.swagger.io/v2/pet/abc',
+        failOnStatusCode: false,
+      }).then((response) => {
+        expect(response.status).to.equal(404);
+      });
+    });
+
+    it('Return 404 when get petId does not exist', () => {
+      cy.wait(5000)
+      cy.request({
+        method: 'GET',
+        url: 'https://petstore.swagger.io/v2/pet/'+PET.id,
+        failOnStatusCode: false,
+      }).then((response) => {
+        expect(response.status).to.equal(404);
+      });
+    });
+
+    it('Return 404 when update petId does not exist', () => {
+      cy.request({
+        method:'PUT',
+        url: 'https://petstore.swagger.io/v2/pet',
+        body: PET_UPDATED,
+        failOnStatusCode: false,
+      }).then((response) => {
+        expect(response.status).to.equal(404);
+      });
+    });
+    
+     
 });
