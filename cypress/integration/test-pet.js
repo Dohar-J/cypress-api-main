@@ -35,7 +35,7 @@ describe('Test PET', () => {
           "name": "cat"
         }
       ],
-      "status": "available"
+      "status": "sold"
     }
 
     it('Create PET', () => {
@@ -142,5 +142,33 @@ describe('Test PET', () => {
       });
     });
     
+    it('Find pet by status', () => {
+      cy.request({
+        method: 'GET', 
+        url: 'https://petstore.swagger.io/v2/pet/findByStatus?status='+PET_UPDATED.status})
+        .then((response) => {
+        expect(response.status).to.equal(200);
+      })
+    })
+
+    it('Find pet by tag', () => {
+      cy.request({
+        method: 'GET',
+        url: 'https://petstore.swagger.io/v2/pet/findByTags?tags=name&tags='+PET_UPDATED.name,
+      }).then((response) => {
+        expect(response.status).to.equal(200);
+      })
+    })
+
+    it('should return 404 when the status is invalid', () => {
+      cy.request({
+        method: 'GET',
+        url: 'https://petstore.swagger.io/v2/pet/findByStatus?status=buy',
+        failOnStatusCode: false,
+      }).then((response) => {
+        expect(response.status).to.equal(404);
+      })
+    })
+
+  });
      
-});
